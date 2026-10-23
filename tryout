@@ -1,11 +1,13 @@
 -- [[ COORDINATES ]]
 local BossPos = CFrame.new(4929.25342, 707.571045, 8318.50391, 0.421293497, -0, -0.906924367, 0, 1, -0, 0.906924367, 0, 0.421293497)
 
--- [[ 
---     ULTIMATE FARM GUI v3 [ULTRA SPEED STABLE]
---     - Fixed: Reverted to while loop to prevent thread crashing on start
---     - Modded: Set delay to absolute minimum (0.001) for maximum possible speed
--- ]]
+--[[ 
+    ULTIMATE FARM GUI v3 [RESTRUCTURED & SPEED UP]
+    - Speed: Upgraded attack frequency safely (0.015)
+    - Fix: Restored all original missing buttons, labels, and systems
+    - UI: Always on Top + Minimize Button (B)
+    - Retreat: Based on MONSTER HP (30% = Retreat, 90% = Resume)
+]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
@@ -30,7 +32,7 @@ end
 local Config = {
     Enabled = false,
     FarmDamage = false,
-    AttackSpeed = 0.001, -- 🚀 ABSZOLÚT MAXIMUM SEBESSÉG (Összeomlás nélkül)
+    AttackSpeed = 0.015, -- ⏱️ Gyorsított sebesség az összes gomb megtartásával
     ScanRange = 100,
     RetreatHP = 30,   
     ResumeHP = 90,    
@@ -134,7 +136,7 @@ local function ClearPhysics()
 end
 
 -- ================================
--- [GUI & AUTOMATION]
+-- [GUI MAKER]
 -- ================================
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "UltimateAttackGUI"
@@ -143,9 +145,23 @@ ScreenGui.IgnoreGuiInset = true
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
+local MiniIcon = Instance.new("TextButton")
+MiniIcon.Name = "MiniIcon"
+MiniIcon.Size = UDim2.new(0, 50, 0, 50)
+MiniIcon.Position = UDim2.new(0, 20, 0.5, -25)
+MiniIcon.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+MiniIcon.Text = "B"
+MiniIcon.TextColor3 = Color3.fromRGB(255, 255, 255)
+MiniIcon.Font = Enum.Font.GothamBold
+MiniIcon.TextSize = 24
+MiniIcon.Visible = false 
+MiniIcon.ZIndex = 10 
+MiniIcon.Parent = ScreenGui
+Instance.new("UICorner", MiniIcon).CornerRadius = UDim.new(1, 0)
+
 local Main = Instance.new("Frame")
 Main.Name = "MainFrame"
-Main.Size = UDim2.new(0, 340, 0, 180)
+Main.Size = UDim2.new(0, 340, 0, 260)
 Main.Position = UDim2.new(0.5, -170, 0.2, 0)
 Main.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
 Main.Active = true
@@ -160,7 +176,7 @@ Header.Parent = Main
 Instance.new("UICorner", Header).CornerRadius = UDim.new(0, 10)
 
 local Title = Instance.new("TextLabel")
-Title.Text = "⚡ Brainrot Farm (ULTRA SPEED)"
+Title.Text = "⚡ Brainrot Evolution Farm"
 Title.Size = UDim2.new(1, -80, 1, 0)
 Title.Position = UDim2.new(0, 15, 0, 0)
 Title.BackgroundTransparency = 1
@@ -181,15 +197,51 @@ ToggleBtn.TextSize = 16
 ToggleBtn.Parent = Main
 Instance.new("UICorner", ToggleBtn).CornerRadius = UDim.new(0, 8)
 
+local DamageBtn = Instance.new("TextButton")
+DamageBtn.Size = UDim2.new(0, 310, 0, 45)
+DamageBtn.Position = UDim2.new(0, 15, 0, 110)
+DamageBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+DamageBtn.Text = "AUTO DAMAGE: OFF"
+DamageBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+DamageBtn.Font = Enum.Font.GothamBold
+DamageBtn.TextSize = 16
+DamageBtn.Parent = Main
+Instance.new("UICorner", DamageBtn).CornerRadius = UDim.new(0, 8)
+
 local StatusLabel = Instance.new("TextLabel")
 StatusLabel.Size = UDim2.new(0, 310, 0, 40)
-StatusLabel.Position = UDim2.new(0, 15, 0, 115)
+StatusLabel.Position = UDim2.new(0, 15, 0, 170)
 StatusLabel.BackgroundTransparency = 1
 StatusLabel.Text = "Status: Idle"
 StatusLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
 StatusLabel.Font = Enum.Font.GothamMedium
 StatusLabel.TextSize = 14
 StatusLabel.Parent = Main
+
+local MinBtn = Instance.new("TextButton")
+MinBtn.Text = "-"
+MinBtn.Size = UDim2.new(0, 35, 0, 35)
+MinBtn.Position = UDim2.new(1, -70, 0, 0)
+MinBtn.BackgroundTransparency = 1
+MinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+MinBtn.Font = Enum.Font.GothamBold
+MinBtn.TextSize = 24
+MinBtn.Parent = Header
+
+local function ToggleGUI()
+    IsMinimized = not IsMinimized
+    Main.Visible = not IsMinimized
+    MiniIcon.Visible = IsMinimized
+end
+
+MinBtn.MouseButton1Click:Connect(ToggleGUI)
+MiniIcon.MouseButton1Click:Connect(ToggleGUI)
+
+UserInputService.InputBegan:Connect(function(input, processed)
+    if not processed and input.KeyCode == Enum.KeyCode.B then
+        ToggleGUI()
+    end
+end)
 
 ToggleBtn.MouseButton1Click:Connect(function()
     Config.Enabled = not Config.Enabled
@@ -203,7 +255,20 @@ ToggleBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- Main Stable Loop
+DamageBtn.MouseButton1Click:Connect(function()
+    Config.FarmDamage = not Config.FarmDamage
+    if Config.FarmDamage then
+        DamageBtn.Text = "AUTO DAMAGE: ON"
+        DamageBtn.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
+    else
+        DamageBtn.Text = "AUTO DAMAGE: OFF"
+        DamageBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+    end
+end)
+
+-- ================================
+-- [BACKGROUND LOOP]
+-- ================================
 task.spawn(function()
     while ScriptRunning do
         if Config.Enabled then
@@ -213,7 +278,7 @@ task.spawn(function()
             if target and target:FindFirstChild("Humanoid") and target.Humanoid.Health > 0 then
                 StatusLabel.Text = "Target: " .. target.Name .. " [" .. math.floor(CalculateHPPercent(target.Humanoid.Health, target.Humanoid.MaxHealth)) .. "%]"
                 
-                if AttackRemote then
+                if AttackRemote and Config.FarmDamage then
                     pcall(function()
                         AttackRemote:InvokeServer(target)
                     end)
