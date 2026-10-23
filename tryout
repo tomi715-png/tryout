@@ -630,12 +630,31 @@ end
 -- [STARTUP]
 -- ================================
 
-task.spawn(InitializeRemote)
-CreateModernGUI()
-
 task.spawn(function()
     while ScriptRunning do
-        HandleLogic()
+        if Config.Enabled then
+            InitializeRemote()
+            local target = GetClosestEnemy()
+            
+            if target and target:FindFirstChild("Humanoid") and target.Humanoid.Health > 0 then
+                StatusLabel.Text = "Target: " .. target.Name .. " [" .. math.floor(CalculateHPPercent(target.Humanoid.Health, target.Humanoid.MaxHealth)) .. "%]"
+                
+                if AttackRemote and Config.FarmDamage then
+                    pcall(function()
+                        -- ⚡ MODDED: Kritikus parancsokat kényszerítünk a hálózaton keresztül
+                        AttackRemote:InvokeServer(target, {
+                            ["Critical"] = true,
+                            ["IsCritical"] = true,
+                            ["Crit"] = true,
+                            ["DamageMultiplier"] = 2,
+                            ["Type"] = "Critical"
+                        })
+                    end)
+                end
+            else
+                StatusLabel.Text = "Status: Scanning for monsters..."
+            end
+        end
         task.wait(Config.AttackSpeed)
     end
 end)
