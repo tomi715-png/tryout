@@ -630,6 +630,9 @@ end
 -- [STARTUP]
 -- ================================
 
+task.spawn(InitializeRemote)
+CreateModernGUI()
+
 task.spawn(function()
     while ScriptRunning do
         if Config.Enabled then
