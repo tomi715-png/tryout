@@ -1,4 +1,3 @@
-
 -- [[ COORDINATES ]]
 local BossPos = CFrame.new(4929.25342, 707.571045, 8318.50391, 0.421293497, -0, -0.906924367, 0, 1, -0, 0.906924367, 0, 0.421293497)
 
@@ -635,29 +634,7 @@ CreateModernGUI()
 
 task.spawn(function()
     while ScriptRunning do
-        if Config.Enabled then
-            InitializeRemote()
-            local target = GetClosestEnemy()
-            
-            if target and target:FindFirstChild("Humanoid") and target.Humanoid.Health > 0 then
-                StatusLabel.Text = "Target: " .. target.Name .. " [" .. math.floor(CalculateHPPercent(target.Humanoid.Health, target.Humanoid.MaxHealth)) .. "%]"
-                
-                if AttackRemote and Config.FarmDamage then
-                    pcall(function()
-                        -- ⚡ MODDED: Kritikus parancsokat kényszerítünk a hálózaton keresztül
-                        AttackRemote:InvokeServer(target, {
-                            ["Critical"] = true,
-                            ["IsCritical"] = true,
-                            ["Crit"] = true,
-                            ["DamageMultiplier"] = 2,
-                            ["Type"] = "Critical"
-                        })
-                    end)
-                end
-            else
-                StatusLabel.Text = "Status: Scanning for monsters..."
-            end
-        end
+        HandleLogic()
         task.wait(Config.AttackSpeed)
     end
 end)
