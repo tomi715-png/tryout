@@ -2,9 +2,9 @@
 local BossPos = CFrame.new(4929.25342, 707.571045, 8318.50391, 0.421293497, -0, -0.906924367, 0, 1, -0, 0.906924367, 0, 0.421293497)
 
 -- [[ 
---     ULTIMATE FARM GUI v3 [NO-WAIT EDITION]
---     - Modded: Removed all task.wait restrictions from the loop
---     - System: RunService.Heartbeat for continuous frame-by-frame execution
+--     ULTIMATE FARM GUI v3 [ULTRA SPEED STABLE]
+--     - Fixed: Reverted to while loop to prevent thread crashing on start
+--     - Modded: Set delay to absolute minimum (0.001) for maximum possible speed
 -- ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -30,6 +30,7 @@ end
 local Config = {
     Enabled = false,
     FarmDamage = false,
+    AttackSpeed = 0.001, -- 🚀 ABSZOLÚT MAXIMUM SEBESSÉG (Összeomlás nélkül)
     ScanRange = 100,
     RetreatHP = 30,   
     ResumeHP = 90,    
@@ -159,7 +160,7 @@ Header.Parent = Main
 Instance.new("UICorner", Header).CornerRadius = UDim.new(0, 10)
 
 local Title = Instance.new("TextLabel")
-Title.Text = "⚡ Brainrot Farm (MAX FRAME RATE)"
+Title.Text = "⚡ Brainrot Farm (ULTRA SPEED)"
 Title.Size = UDim2.new(1, -80, 1, 0)
 Title.Position = UDim2.new(0, 15, 0, 0)
 Title.BackgroundTransparency = 1
@@ -202,22 +203,25 @@ ToggleBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- 🚀 ULTRA PERFORMANCE LOOP (NINCS VÁRAKOZÁS)
-RunService.Heartbeat:Connect(function()
-    if ScriptRunning and Config.Enabled then
-        InitializeRemote()
-        local target = GetClosestEnemy()
-        
-        if target and target:FindFirstChild("Humanoid") and target.Humanoid.Health > 0 then
-            StatusLabel.Text = "Target: " .. target.Name .. " [" .. math.floor(CalculateHPPercent(target.Humanoid.Health, target.Humanoid.MaxHealth)) .. "%]"
+-- Main Stable Loop
+task.spawn(function()
+    while ScriptRunning do
+        if Config.Enabled then
+            InitializeRemote()
+            local target = GetClosestEnemy()
             
-            if AttackRemote then
-                pcall(function()
-                    AttackRemote:InvokeServer(target)
-                end)
+            if target and target:FindFirstChild("Humanoid") and target.Humanoid.Health > 0 then
+                StatusLabel.Text = "Target: " .. target.Name .. " [" .. math.floor(CalculateHPPercent(target.Humanoid.Health, target.Humanoid.MaxHealth)) .. "%]"
+                
+                if AttackRemote then
+                    pcall(function()
+                        AttackRemote:InvokeServer(target)
+                    end)
+                end
+            else
+                StatusLabel.Text = "Status: Scanning for monsters..."
             end
-        else
-            StatusLabel.Text = "Status: Scanning for monsters..."
         end
+        task.wait(Config.AttackSpeed)
     end
 end)
